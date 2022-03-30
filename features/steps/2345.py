@@ -3,22 +3,24 @@ from pprint import pprint
 
 from aloe import before, step, world
 
-from src.controller.price_plan_comparator_controller import last_week_costs
-from src.domain.price_plan import PricePlan
 
+from src.service.time_converter import iso_format_to_unix_time
+from src.domain.price_plan import PricePlan
+from src.repository.price_plan_repository import PricePlanRepository
 from src.repository.electricity_reading_repository import ElectricityReadingRepository
 from src.service.electricity_reading_service import ElectricityReadingService
 from src.service.price_plan_service import PricePlanService
-from src.repository.price_plan_repository import PricePlanRepository
+from src.controller.price_plan_comparator_controller import last_week_costs
 
 
 DEBUG = True
 last_week = datetime.datetime.now() - datetime.timedelta(weeks=1)
 
+
 oElectricityReadingRepository = ElectricityReadingRepository()
-oElectricityReadingService = ElectricityReadingService(ElectricityReadingRepository)
-oPricePlanService = PricePlanService(oElectricityReadingRepository)
+oElectricityReadingService = ElectricityReadingService(oElectricityReadingRepository)
 oPricePlanRepository = PricePlanRepository()
+oPricePlanService = PricePlanService(oElectricityReadingRepository)
 oPricePlanRepository.store([
     PricePlan('price-plan-0', "Dr Evil's Dark Energy", 10),
     PricePlan('price-plan-1', "The Green Eco"        ,  2),
@@ -34,7 +36,7 @@ def before_feature(self):
 
 def generate_timestamp(seconds=0):
     _datetime = last_week + datetime.timedelta(seconds=seconds)
-    return _datetime.timestamp()
+    return iso_format_to_unix_time(_datetime.isoformat())
 
 
 @step("Usage data stored")

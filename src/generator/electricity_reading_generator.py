@@ -14,7 +14,8 @@ def get_timedelta(sec=60):
 
 
 def get_datetime_ago(minutes):
-    return datetime.datetime.now() - get_timedelta(minutes*60)
+    _datetime = datetime.datetime.now() - get_timedelta(minutes*60)
+    return iso_format_to_unix_time(_datetime.isoformat())
 
 
 def generate_random_reading():
@@ -24,7 +25,7 @@ def generate_random_reading():
 def generate_electricity_readings(num):
     return [
         {
-            "time": get_datetime_ago(minutes=i).timestamp(),
+            "time": get_datetime_ago(minutes=i),
             "reading": generate_random_reading()
         }
         for i in range(num)

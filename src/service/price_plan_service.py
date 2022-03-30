@@ -1,5 +1,6 @@
 from functools import reduce
 from datetime import datetime
+from pprint import pprint
 
 from repository.price_plan_repository import price_plan_repository
 
@@ -50,7 +51,8 @@ class PricePlanService:
     # {"reading":0.862, "time":1648567018},
     def get_list_of_readings_in_timerange(self, smart_meter_id, date_from=None, date_to=None):
         readings = self.electricity_reading_service.retrieve_readings_for(smart_meter_id)
-        if len(readings) < 1:
+        pprint(readings)
+        if not readings:
             return []
 
         if date_from:
