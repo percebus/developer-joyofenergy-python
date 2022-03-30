@@ -9,3 +9,4 @@ class AccountService:
 
     def get_price_plan(self, smart_meter_id):
         return self.plan_ids_by_meter[smart_meter_id]
+

@@ -13,11 +13,19 @@ def get_timedelta(sec=60):
     return datetime.timedelta(seconds=sec)
 
 
-def generate_electricity_readings(num):
-    readings = []
-    for i in range(num):
-        random_time = (datetime.datetime.now() - get_timedelta(i*60)).isoformat()
-        random_reading = math.floor(random.random() * 1000)/1000
-        readings.append({"time": iso_format_to_unix_time(random_time), "reading": random_reading})
+def get_datetime_ago(minutes):
+    return datetime.datetime.now() - get_timedelta(minutes*60)
 
-    return readings
+
+def generate_random_reading():
+    return math.floor(random.random() * 1000) / 1000
+
+
+def generate_electricity_readings(num):
+    return [
+        {
+            "time": get_datetime_ago(minutes=i).timestamp(),
+            "reading": generate_random_reading()
+        }
+        for i in range(num)
+    ]

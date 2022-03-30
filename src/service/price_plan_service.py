@@ -1,7 +1,9 @@
 from functools import reduce
+from datetime import datetime
 
 from repository.price_plan_repository import price_plan_repository
 
+from .account_service import AccountService
 from .electricity_reading_service import ElectricityReadingService
 from .time_converter import time_elapsed_in_hours
 
@@ -15,6 +17,7 @@ def calculate_time_elapsed(readings):
 class PricePlanService:
     def __init__(self, reading_repository):
         self.electricity_reading_service = ElectricityReadingService(reading_repository)
+        self.account_service = AccountService()
 
     def get_list_of_spend_against_each_price_plan_for(self, smart_meter_id, limit=None):
         readings = self.electricity_reading_service.retrieve_readings_for(smart_meter_id)
@@ -27,12 +30,11 @@ class PricePlanService:
 
         price_plans = price_plan_repository.get()
 
-
         def cost_from_plan(price_plan):
             cost = {}
             cost[price_plan.name] = consumed_energy * price_plan.unit_rate
             return cost
-        
+
         list_of_spend = list(map(cost_from_plan, self.cheapest_plans_first(price_plans)))
 
         return list_of_spend[:limit]
@@ -43,3 +45,34 @@ class PricePlanService:
     def calculate_average_reading(self, readings):
         sum = reduce((lambda p, c: p + c), map(lambda r: r.reading, readings), 0)
         return sum / len(readings)
+
+    # {"reading":0.088, "time":1648567078},
+    # {"reading":0.862, "time":1648567018},
+    def get_list_of_readings_in_timerange(self, smart_meter_id, date_from=None, date_to=None):
+        readings = self.electricity_reading_service.retrieve_readings_for(smart_meter_id)
+        if len(readings) < 1:
+            return []
+
+        if date_from:
+            readings = [
+                reading
+                for reading in readings
+                if datetime.datetime.fromtimestamp(reading.time) >= date_from
+            ]
+
+        if date_to:
+            readings = [
+                reading
+                for reading in readings
+                if datetime.datetime.fromtimestamp(reading.time) <= date_to
+            ]
+
+        return readings
+
+    def get_list_of_costs_in_timerange(self, smart_meter_id, date_from=None, date_to=None):
+        oPricePlan = self.account_service.get_price_plan(smart_meter_id)
+        readings = self.get_list_of_readings_in_timerange(smart_meter_id, date_from=date_from, date_to=date_to)
+        return [
+            oElectricityReading.reading * oPricePlan.get(oElectricityReading.time)
+            for oElectricityReading in readings
+        ]
